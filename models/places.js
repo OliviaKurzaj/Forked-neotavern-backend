@@ -19,7 +19,7 @@ const placeSchema = mongoose.Schema({
       ref: "events",
     },
   ],
-  users: {
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "users",
   },

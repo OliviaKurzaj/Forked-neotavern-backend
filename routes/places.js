@@ -25,26 +25,34 @@ router.post("/importPlace", (req, res) => {
           website: feature.properties.website || '',
           longitude: feature.properties.lon || null,
           latitude: feature.properties.lat || null,
-          // events: req.body.events,
-          // user: req.body.user
+          events: req.body.events || [],
+          user: req.body.user
         }));
   
         // vérifie chaque établissement et les ajoute uniquement s'ils n'existent pas déjà
+            // Promise.all exécute des opérations asynchrones en parallèle, et retourne une seule promesse pour savoir quand l'opération est terminée.
         Promise.all(newPlaces.map(async place => {
           const existingPlace = await Place.findOne({ name: { $regex: new RegExp(place.name, 'i') } });
           if (!existingPlace) {
             const newPlace = new Place(place);
-            await newPlace.save();
+            await newPlace.save()
+            .then(savedPlace => { // sauvegarde de l'établissement dans la BDD
+                return Place.findById(savedPlace._id)
+                .populate("events")
+                .populate("user", "token");
+            })
+            .then(populatedPlace => res.json({ result: true, populatedPlace }))
           }
 
         }))
+
         
         .then(() => {
           res.json({ result: true, message: 'Établissements importés avec succès' });
         })
         .catch(error => {
-          console.error(`Erreur lors de l'importation des établissements:`, error);
-          res.json({ result: false, error: `Erreur lors de l'importation des établissements` });
+          console.error(`Erreur lors de l'import des établissements:`, error);
+          res.json({ result: false, error: `Erreur lors de l'import des établissements` });
         });
       });
   });
@@ -69,20 +77,25 @@ router.post("/createPlace", (req, res) => {
             city: req.body.city,
             postcode: req.body.postcode,
             date: req.body.date,
-            type: req.body.type,
             description: req.body.description,
+            type: req.body.type,
             vegan: false,
             vegetarian: false,
             website: req.body.website,
-            // events: req.body.events,
-            // user: req.body.user,
             longitude: null,
-            latitude: null
+            latitude: null,
+            events: '',
+            user: user.nickname,
             });
     
-            newPlace.save().then(newPlace => { // sauvegarde de l'établissement dans la BDD
-            res.json({ result: true, newPlace });
-            });
+            newPlace
+            .save()
+            .then(savedPlace => { // sauvegarde de l'établissement dans la BDD
+                return Place.findById(savedPlace._id)
+                .populate("events")
+                .populate("user", "token");
+            })
+            .then(populatedPlace => res.json({ result: true, populatedPlace }))
 
     } else {
         // L'établissement existe déjà!
@@ -113,8 +126,41 @@ router.get("/:placeName", (req, res) => {
       });
 });
 
-router.delete("/deletePlace/:userToken", (req, res) => {});
+// Supprime l'établissement 
+router.delete("/deletePlace/:userToken/:placeId", (req, res) => {
+    Place.deleteOne({
+        _id: req.params.placeId, 
+        user: req.params.userToken
+    })
+    .then(deletedPlace => {
+         //la méthode de suppression mongoose deleteOne retourne un deletedCount qui compte le nb d'éléments supprimés
+        if (deletedPlace.deletedCount > 0) {
+            // le document a donc bien été supprimé
+            Place.find().then(data => {
+              res.json({ result: true, message: "L'établissement a bien été suppprimé"});
+            });
+          } else {
+            res.json({ result: false, error: "Pas d'établissement trouvé" });
+          }
+    })
+});
 
-router.put("/updatePlace/:userToken", (req, res) => {});
+router.put("/updatePlace/:userToken/:placeId", (req, res) => {
+    Place.updateOne({ 
+        _id: req.params.placeId,
+        user: req.params.userToken
+    })
+    .then(updatedPlace => {
+         //la méthode de mise à jour mongoose updateOne retourne un modifiedCount qui compte le nb d'éléments supprimés
+        if (updatedPlace.modifiedCount > 0) {
+            // document successfully deleted
+            Place.find().then(data => {
+              res.json({ result: true, message: "L'établissement a bien été mis à jour"});
+            });
+          } else {
+            res.json({ result: false, error: "Pas d'établissement trouvé" });
+          }
+    })
+});
 
 module.exports = router;
