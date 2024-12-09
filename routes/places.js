@@ -7,10 +7,53 @@ const { checkBody } = require('../modules/checkBody');
 
 const NEO_API_KEY = process.env.NEO_API_KEY;
 
+// Création d'une route POST pour importer en BDD les établissements d'une API (seulement BACKEND)
+router.post("/importPlace", (req, res) => {
+    fetch(`https://api.geoapify.com/v2/places?categories=catering.restaurant,catering.bar,catering.pub&filter=rect:4.806751861961814,45.77400743810298,4.877333128814811,45.73288717454651&limit=50&apiKey=${NEO_API_KEY}`)
+      .then(response => response.json())
+      .then(apiData => { // utilisation du .map pour importer et vérifier chaque établissement
+        const newPlaces = apiData.features.map(feature => ({
+          name: feature.properties.name || '',
+          address: feature.properties.street || '',
+          city: feature.properties.city || '',
+          postcode: feature.properties.postcode || '',
+          date: feature.properties.opening_hours || '',
+          description: req.body.description || '',
+          type: feature.properties.catering?.cuisine || '',
+          vegan: feature.properties.catering?.diet?.vegan || false,
+          vegetarian: feature.properties.catering?.diet?.vegetarian || false,
+          website: feature.properties.website || '',
+          longitude: feature.properties.lon || null,
+          latitude: feature.properties.lat || null,
+          // events: req.body.events,
+          // user: req.body.user
+        }));
+  
+        // vérifie chaque établissement et les ajoute uniquement s'ils n'existent pas déjà
+        Promise.all(newPlaces.map(async place => {
+          const existingPlace = await Place.findOne({ name: { $regex: new RegExp(place.name, 'i') } });
+          if (!existingPlace) {
+            const newPlace = new Place(place);
+            await newPlace.save();
+          }
+
+        }))
+        
+        .then(() => {
+          res.json({ result: true, message: 'Établissements importés avec succès' });
+        })
+        .catch(error => {
+          console.error(`Erreur lors de l'importation des établissements:`, error);
+          res.json({ result: false, error: `Erreur lors de l'importation des établissements` });
+        });
+      });
+  });
+  
+
 // Création d'une route POST pour pouvoir créer un établissement
 router.post("/createPlace", (req, res) => {
     // le module checkbody va permettre de vérifier que le champ remplis n'est ni vide, ni égal à zéro, ni null, ni undefined.
-    if (!checkBody(req.body, ['name', 'address', 'postcode', 'city', 'date', 'description', 'website'])) {
+    if (!checkBody(req.body, ['name', 'address', 'postcode', 'city', 'type', 'date', 'description', 'website'])) {
         res.json({ result: false, error: 'Missing or empty fields' });
         return;
       }
@@ -26,12 +69,15 @@ router.post("/createPlace", (req, res) => {
             city: req.body.city,
             postcode: req.body.postcode,
             date: req.body.date,
+            type: req.body.type,
             description: req.body.description,
-            vegan: req.body.vegan,
-            vegetarian: req.body.vegetarian,
+            vegan: false,
+            vegetarian: false,
             website: req.body.website,
             // events: req.body.events,
-            // user: req.body.user
+            // user: req.body.user,
+            longitude: null,
+            latitude: null
             });
     
             newPlace.save().then(newPlace => { // sauvegarde de l'établissement dans la BDD
