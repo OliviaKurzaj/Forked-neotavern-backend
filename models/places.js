@@ -3,9 +3,16 @@ const mongoose = require("mongoose");
 const placeSchema = mongoose.Schema({
   name: String,
   address: String,
-  date: Date,
+  city: String,
+  postcode: String,
+  date: String, // horaires d'ouverture
   description: String,
+  type: String,
   website: String,
+  vegan: Boolean,
+  vegetarian: Boolean,
+  longitude: Number,
+  latitude: Number,
   events: [
     {
       type: mongoose.Schema.Types.ObjectId,
