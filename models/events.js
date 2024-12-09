@@ -13,14 +13,14 @@ const eventSchema = mongoose.Schema({
     { price: [String] },
     { legal: [String] },
   ],
-  place: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "places",
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
-  },
+  // place: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "places",
+  // },
+  // user: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "users",
+  // },
 });
 
 const Event = mongoose.model("events", eventSchema);

@@ -3,7 +3,7 @@ var router = express.Router();
 
 const Event = require("../models/events");
 
-router.post("/createEvent/:userToken", (req, res) => {
+router.post("/createEvent/", (req, res) => {
   // Créer un événement
   Event.findOne({ name: req.body.name }).then((event) => {
     if (event) {
@@ -37,19 +37,26 @@ router.get("/likedEvents/:userToken", (req, res) => {});
 
 router.get("/createdEvents/:userToken", (req, res) => {});
 
-router.get("/event/:eventInfos", (req, res) => {
-  // Afficher des événements après une recherche
-  Event.find({ name: req.params.eventInfos }).then((event) => {
-    res.json(event);
+router.get("/:eventInfos", (req, res) => {
+  // Rechercher un événement par nom ou description
+  const searchTerm = req.params.eventInfos;
 
-    if (res.json(event) === null) {
-      Event.find({ description: req.params.eventInfos }).then((event) => {
-        res.json(event);
-      });
-    } else {
-      res.json({ message: "No event found" });
-    }
-  });
+  Event.find({
+    $or: [
+      { name: { $regex: searchTerm, $options: "i" } },
+      { description: { $regex: searchTerm, $options: "i" } },
+    ],
+  })
+    .then((events) => {
+      if (events.length > 0) {
+        res.json(events);
+      } else {
+        res.status(404).json({ message: "No event found" });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
 });
 
 router.get("/event", (req, res) => {});
