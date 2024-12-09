@@ -33,7 +33,7 @@ router.post("/signup", (req, res) => {
                 token: uid2(32),
                 likedEvents: [],
                 postedEvents: [],
-                badges: req.body.badge,
+                badges: req.body.badges,
 			})
 			newUser.save().then(newData => {
 				res.json({result: true, userData:newData})
@@ -44,13 +44,6 @@ router.post("/signup", (req, res) => {
 
 // route post/login => connexion utilisateur par mail et mdp :
 router.post("/login", (req, res) => {
-
-    //vérification du champs de saisie 
-    if (!checkBody(req.body, [ 'username', 'password', 'nickname'])) {
-		res.json({ result: false, error: 'Champs manquants ou vides' });
-			return;
-		}
-
     User.findOne({email:req.body.email})
     .then(dbData => {
         if (dbData && bcrypt.compareSync(req.body.password, dbData.password)){
