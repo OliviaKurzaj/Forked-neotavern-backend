@@ -3,6 +3,7 @@ var router = express.Router();
 
 const Place = require("../models/places");
 require('../models/connection');
+const { checkBody } = require('../modules/checkBody');
 
 const NEO_API_KEY = process.env.NEO_API_KEY;
 
@@ -28,7 +29,7 @@ router.post("/createPlace", (req, res) => {
             description: req.body.description,
             vegan: req.body.vegan,
             vegetarian: req.body.vegetarian,
-            website: JSON.stringify(req.body.website),
+            website: req.body.website,
             // events: req.body.events,
             // user: req.body.user
             });
@@ -44,10 +45,27 @@ router.post("/createPlace", (req, res) => {
     });
 });
 
+// Afficher tous les établissements de la BDD
+router.get("/allPlaces", (req, res) => {
+    Place.find()
+    .then(data => {
+        res.json({ result: true, data})
+    })
+});
 
-router.get("/", (req, res) => {});
-
-router.get("/:placeName", (req, res) => {});
+// Afficher l'établissement selon son nom, avec ou sans majuscule
+router.get("/:placeName", (req, res) => {
+    Place.findOne({
+        name: { $regex: new RegExp(req.params.name, "i") }
+    })
+    .then(data => {
+        if (data) { // si l'etablissement existe, cela affiche ses infos
+          res.json({ result: true, data });
+        } else { // s'il n'existe pas, message d'erreur
+          res.json({ result: false, error: "Etablissement introuvable, essaye de vérifier le nom exact du lieu :-)" });
+        }
+      });
+});
 
 router.delete("/deletePlace/:userToken", (req, res) => {});
 

@@ -5,7 +5,7 @@ const placeSchema = mongoose.Schema({
   address: String,
   city: String,
   postcode: String,
-  date: Date, // horaires d'ouverture
+  date: String, // horaires d'ouverture
   description: String,
   website: String,
   vegan: Boolean,
