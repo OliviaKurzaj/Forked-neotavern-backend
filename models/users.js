@@ -7,8 +7,8 @@ const userSchema = mongoose.Schema({
   password: String,
   role: String,
   token: String,
-  // likedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "events" }],
-  // postedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "events" }],
+  likedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "events" }],
+  postedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "events" }],
   badges: String,
 });
 
