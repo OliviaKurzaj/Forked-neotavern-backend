@@ -20,9 +20,15 @@ router.post("/createEvent/", (req, res) => {
         place: req.body.place,
         user: req.body.user,
       });
+
       newEvent
         .save()
-        .then((event) => res.json(event))
+        .then((savedEvent) => {
+          return Event.findById(savedEvent._id)
+            .populate("place")
+            .populate("user", "token");
+        })
+        .then((populatedEvent) => res.json(populatedEvent))
         .catch((err) => console.log(err));
     }
   });
@@ -32,10 +38,6 @@ router.get("/", (req, res) => {
   // Récupérer tous les événements
   Event.find().then((events) => res.json(events));
 });
-
-router.get("/likedEvents/:userToken", (req, res) => {});
-
-router.get("/createdEvents/:userToken", (req, res) => {});
 
 router.get("/:eventInfos", (req, res) => {
   // Rechercher un événement par nom ou description
@@ -59,15 +61,41 @@ router.get("/:eventInfos", (req, res) => {
     });
 });
 
+router.delete("/deleteEvent/:userToken", (req, res) => {
+  const { userToken } = req.params;
+  const { eventId } = req.body;
+
+  if (!userToken) {
+    return res.status(400).json({ message: "User token is required" });
+  }
+
+  if (!eventId) {
+    return res.status(400).json({ message: "Event ID is required" });
+  }
+
+  Event.findById(eventId).then((event) => {
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (event.user.token !== userToken) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    Event.findByIdAndDelete(eventId)
+      .then(() => {
+        res.json({ message: "Event deleted successfully" });
+      })
+      .catch((err) => {
+        res.status(500).json({ error: err.message });
+      });
+  });
+});
+
 router.get("/event", (req, res) => {});
 
-router.delete("/deleteEvent/:userToken", (req, res) => {
-  // Supprimer un événement si l'utilisateur est l'auteur
-  Event.findById(req.params.id)
-    .then((event) => {
-      event.remove().then(() => res.json({ success: true }));
-    })
-    .catch((err) => res.status(404).json({ eventnotfound: "No event found" }));
-});
+router.get("/likedEvents/:userToken", (req, res) => {});
+
+router.get("/createdEvents/:userToken", (req, res) => {});
 
 module.exports = router;
