@@ -85,7 +85,7 @@ router.post("/createPlace", (req, res) => {
             longitude: null,
             latitude: null,
             events: '',
-            user: user.nickname,
+            user: user.token,
             });
     
             newPlace
