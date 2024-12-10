@@ -4,7 +4,7 @@ var router = express.Router();
 const Event = require("../models/events");
 const User = require("../models/users");
 
-router.post("/createEvent", (req, res) => {
+router.post("/createEvent/", (req, res) => {
   // Créer un événement
   Event.findOne({ name: req.body.name }).then((event) => {
     if (event) {
@@ -26,8 +26,8 @@ router.post("/createEvent", (req, res) => {
         .save()
         .then((savedEvent) => {
           return Event.findById(savedEvent._id)
-            .populate("place")
-            .populate("user", "token");
+            .populate("user")
+            .populate("place");
         })
         .then((populatedEvent) => res.json(populatedEvent))
         .catch((err) => console.log(err));
@@ -37,7 +37,10 @@ router.post("/createEvent", (req, res) => {
 
 router.get("/", (req, res) => {
   // Récupérer tous les événements
-  Event.find().then((events) => res.json(events));
+  Event.find()
+    .populate("user")
+    .populate("place")
+    .then((events) => res.json(events));
 });
 
 router.get("/:eventInfos", (req, res) => {
