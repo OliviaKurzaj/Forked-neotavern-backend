@@ -4,7 +4,7 @@ var router = express.Router();
 const Event = require("../models/events");
 const User = require("../models/users");
 
-router.post("/createEvent/", (req, res) => {
+router.post("/createEvent", (req, res) => {
   // Créer un événement
   Event.findOne({ name: req.body.name }).then((event) => {
     if (event) {
