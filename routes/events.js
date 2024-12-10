@@ -92,10 +92,22 @@ router.delete("/deleteEvent/:userToken", (req, res) => {
   });
 });
 
-router.get("/event", (req, res) => {});
-
 router.get("/likedEvents/:userToken", (req, res) => {});
 
-router.get("/createdEvents/:userToken", (req, res) => {});
+router.get("/createdEvents/:userToken", (req, res) => {
+  const { userToken } = req.params;
+
+  if (!userToken) {
+    return res.status(400).json({ message: "User token is required" });
+  }
+
+  Event.find({ user: userToken })
+    .then((events) => {
+      res.json(events);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+});
 
 module.exports = router;
