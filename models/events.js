@@ -5,7 +5,7 @@ const eventSchema = mongoose.Schema({
   description: String,
   date: Date,
   mainCategory: String,
-  likes: Number,
+  likes: { type: Number, default: 0 },
   categories: [String],
   infosTags: [
     { food: [String] },

@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 const Event = require("../models/events");
+const User = require("../models/users");
 
 router.post("/createEvent/", (req, res) => {
   // Créer un événement
@@ -92,8 +93,7 @@ router.delete("/deleteEvent/:userToken", (req, res) => {
   });
 });
 
-router.get("/likedEvents/:userToken", (req, res) => {});
-
+// Route pour récupérer les événements créés par un utilisateur
 router.get("/createdEvents/:userToken", (req, res) => {
   const { userToken } = req.params;
 
@@ -107,6 +107,66 @@ router.get("/createdEvents/:userToken", (req, res) => {
     })
     .catch((err) => {
       res.status(500).json({ error: err.message });
+    });
+});
+
+// Route pour liker un événement
+router.post("/like/:userId/:eventId", (req, res) => {
+  const { userId, eventId } = req.params;
+
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return Event.findById(eventId).then((event) => {
+        if (!event) {
+          return res.status(404).json({ message: "Event not found" });
+        }
+
+        if (user.likedEvents.includes(eventId)) {
+          return res.status(400).json({ message: "Event already liked" });
+        }
+
+        user.likedEvents.push(eventId);
+        return user.save().then(() => {
+          event.likes += 1;
+          return event.save().then(() => {
+            res.status(200).json({
+              message: "Event liked successfully",
+              event,
+              "liké par": user,
+            });
+          });
+        });
+      });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "An error occurred", error });
+    });
+});
+
+// Route pour récupérer les likes d'un utilisateur
+router.get("/liked-events/:userId", (req, res) => {
+  const { userId } = req.params;
+
+  User.findById(userId)
+    .populate("likedEvents")
+    .then((user) => {
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        throw new Error("User not found");
+      }
+
+      res.status(200).json({ likedEvents: user.likedEvents });
+    })
+    .catch((error) => {
+      if (!res.headersSent) {
+        res
+          .status(500)
+          .json({ message: "An error occurred", error: error.message });
+      }
     });
 });
 

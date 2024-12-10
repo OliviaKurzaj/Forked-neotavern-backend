@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { token } = require("morgan");
 
 const userSchema = mongoose.Schema({
   nickname: String,
@@ -8,7 +7,6 @@ const userSchema = mongoose.Schema({
   role: String,
   token: String,
   likedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "events" }],
-  postedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: "events" }],
   badges: String,
 });
 
