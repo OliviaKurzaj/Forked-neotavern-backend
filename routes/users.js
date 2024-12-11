@@ -15,10 +15,10 @@ router.post("/signup", (req, res) => {
     }
 
     //création user
-	User.findOne({email: req.body.mail, nickname: req.body.nickname})
+	User.findOne({email: req.body.mail})
     .then(dbData => {
 		if(dbData){
-			res.json({result: false, error:`Ce mail ou ce surnom est déjà existant`})
+			res.json({result: false, error:`Ce mail est déjà existant`})
 		}else{
             const hash = bcrypt.hashSync(req.body.password, 10);
 			const newUser = new User({
