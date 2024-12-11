@@ -15,7 +15,7 @@ router.post("/signup", (req, res) => {
     }
 
     //création user
-	User.findOne({email: req.body.mail})
+	User.findOne({email: req.body.email})
     .then(dbData => {
 		if(dbData){
 			res.json({result: false, error:`Ce mail est déjà existant`})
