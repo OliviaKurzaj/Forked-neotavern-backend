@@ -15,12 +15,11 @@ router.post("/signup", (req, res) => {
     }
 
     //création user
-	User.findOne({nickname: req.body.nickname})
+	User.findOne({email: req.body.email})
     .then(dbData => {
 		if(dbData){
-			res.json({result: false, error:`Ce surnom est déjà existant`})
-		}
-		else{
+			res.json({result: false, error:`Ce mail est déjà existant`})
+		}else{
             const hash = bcrypt.hashSync(req.body.password, 10);
 			const newUser = new User({
                 nickname: req.body.nickname,
@@ -29,10 +28,10 @@ router.post("/signup", (req, res) => {
                 role: req.body.role,
                 token: uid2(32),
                 likedEvents: [],
-                postedEvents: [],
                 badges: req.body.badges,
 			})
-			newUser.save().then(newUser => res.json(newUser))
+			newUser.save().
+            then(newUser => res.json({result:true,newUser}))
             .then((savedUser)=> {
                 return User.findOne(savedUser.token)
                 .populate('events')
@@ -43,7 +42,6 @@ router.post("/signup", (req, res) => {
 		}
 	})
 })
-
 
 router.post("/login", (req, res) => {
     //connexion user par email et mdp
