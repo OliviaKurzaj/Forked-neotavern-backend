@@ -114,10 +114,10 @@ router.get("/createdEvents/:userToken", (req, res) => {
 });
 
 // Route pour liker un événement
-router.post("/like/:userId/:eventId", (req, res) => {
-  const { userId, eventId } = req.params;
+router.post("/like/:userToken/:eventId", (req, res) => {
+  const { userToken, eventId } = req.params;
 
-  User.findById(userId)
+  User.findById(userToken)
     .then((user) => {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -129,7 +129,7 @@ router.post("/like/:userId/:eventId", (req, res) => {
         }
 
         if (user.likedEvents.includes(eventId)) {
-          return res.status(400).json({ message: "Event already liked" });
+          return res.status(400).json({ message: "Event already liked", liked:true });
         }
 
         user.likedEvents.push(eventId);
