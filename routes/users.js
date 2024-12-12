@@ -14,38 +14,34 @@ router.post("/signup", (req, res) => {
     return;
   }
 
-  //création user
-  User.findOne({ nickname: req.body.nickname, email: req.body.email }).then(
-    (dbData) => {
-      if (dbData) {
-        res.json({
-          result: false,
-          error: `Ce surnom ou le mail est déjà existant`,
-        });
-      } else {
-        const hash = bcrypt.hashSync(req.body.password, 10);
-        const newUser = new User({
-          nickname: req.body.nickname,
-          email: req.body.email,
-          password: hash,
-          role: req.body.role,
-          token: uid2(32),
-          likedEvents: [],
-          postedEvents: [],
-          badges: req.body.badges,
-        });
-        newUser
-          .save()
-          .then((newUser) => res.json(newUser))
-          .then((savedUser) => {
-            return User.findOne(savedUser.token).populate("events");
-          })
-          .then((populatedUser) => res.json({ result: true, populatedUser }))
-          .catch((err) => console.log(err));
-      }
-    }
-  );
-});
+    //création user
+	User.findOne({email: req.body.email})
+    .then(dbData => {
+		if(dbData){
+			res.json({result: false, error:`Ce mail est déjà existant`})
+		}else{
+            const hash = bcrypt.hashSync(req.body.password, 10);
+			const newUser = new User({
+                nickname: req.body.nickname,
+                email: req.body.email,
+                password: hash,
+                role: req.body.role,
+                token: uid2(32),
+                likedEvents: [],
+                badges: req.body.badges,
+			})
+			newUser.save().
+            then(newUser => res.json({result:true,newUser}))
+            .then((savedUser)=> {
+                return User.findOne(savedUser.token)
+                .populate('events')
+            })
+            .then((populatedUser) => 
+            res.json({result:true, populatedUser}))
+            .catch((err) => console.log(err));
+		}
+	})
+})
 
 router.post("/login", (req, res) => {
   //connexion user par email et mdp

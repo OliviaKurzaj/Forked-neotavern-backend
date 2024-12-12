@@ -17,6 +17,7 @@ router.post("/createEvent/", (req, res) => {
         hour: req.body.hour,
         likes: req.body.likes,
         categories: req.body.categories,
+        photo: req.body.photo,
         infosTags: req.body.infosTags,
         place: req.body.place,
         user: req.body.user,
@@ -129,7 +130,9 @@ router.post("/like/:userToken/:eventId", (req, res) => {
         }
 
         if (user.likedEvents.includes(eventId)) {
-          return res.status(400).json({ message: "Event already liked" });
+          return res
+            .status(400)
+            .json({ message: "Event already liked", liked: true });
         }
 
         user.likedEvents.push(eventId);
