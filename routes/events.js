@@ -17,6 +17,7 @@ router.post("/createEvent/", (req, res) => {
         mainCategory: req.body.mainCategory,
         likes: req.body.likes,
         categories: req.body.categories,
+        photo: req.body.photo,
         infosTags: req.body.infosTags,
         place: req.body.place,
         user: req.body.user,
