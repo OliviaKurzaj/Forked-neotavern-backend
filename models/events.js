@@ -4,15 +4,14 @@ const eventSchema = mongoose.Schema({
   name: String,
   description: String,
   date: Date,
-  mainCategory: String,
+  hour: Date,
   likes: { type: Number, default: 0 },
   categories: [String],
-  infosTags: [
-    { food: [String] },
-    { drinks: [String] },
-    { price: [String] },
-    { legal: [String] },
-  ],
+  infosTags: {
+    food: [String],
+    drinks: [String],
+    price: String,
+  },
   place: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "places",

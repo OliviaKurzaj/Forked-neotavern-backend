@@ -14,7 +14,7 @@ router.post("/createEvent/", (req, res) => {
         name: req.body.name,
         description: req.body.description,
         date: req.body.date,
-        mainCategory: req.body.mainCategory,
+        hour: req.body.hour,
         likes: req.body.likes,
         categories: req.body.categories,
         infosTags: req.body.infosTags,
@@ -114,10 +114,10 @@ router.get("/createdEvents/:userToken", (req, res) => {
 });
 
 // Route pour liker un événement
-router.post("/like/:userId/:eventId", (req, res) => {
-  const { userId, eventId } = req.params;
+router.post("/like/:userToken/:eventId", (req, res) => {
+  const { userToken, eventId } = req.params;
 
-  User.findById(userId)
+  User.find({ token: userToken })
     .then((user) => {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
