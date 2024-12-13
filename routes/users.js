@@ -31,7 +31,7 @@ router.post("/signup", (req, res) => {
       });
       newUser
         .save()
-        .then((dbData) => res.json({ result: true,  dbData }))
+        .then((data) => res.json({ result: true, data }))
         .then((savedUser) => {
           return User.findOne(savedUser.token).populate("events");
         })
@@ -43,13 +43,13 @@ router.post("/signup", (req, res) => {
 
 router.post("/login", (req, res) => {
   //connexion user par email et mdp
-User.findOne({ email: req.body.email }).then((dbData) => {
-    if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
-    res.json({ result: true, dbData });
+  User.findOne({ email: req.body.email }).then((data) => {
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {
+      res.json({ result: true, data });
     } else {
-    res.json({ result: false, error: "Mauvais email et/ou mot de passe" });
+      res.json({ result: false, error: "Mauvais email et/ou mot de passe" });
     }
-    });
+  });
 });
 
 router.delete("/deleteUser/:token", (req, res) => {

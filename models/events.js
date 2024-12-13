@@ -4,7 +4,7 @@ const eventSchema = mongoose.Schema({
   name: String,
   description: String,
   date: Date,
-  hour: Date,
+  hour: String,
   likes: { type: Number, default: 0 },
   categories: [String],
   photo: String,
