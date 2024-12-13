@@ -14,44 +14,66 @@ router.post("/signup", (req, res) => {
     return;
   }
 
-    //création user
-	User.findOne({email: req.body.email})
-    .then(dbData => {
-		if(dbData){
-			res.json({result: false, error:`Ce mail est déjà existant`})
-		}else{
-            const hash = bcrypt.hashSync(req.body.password, 10);
-			const newUser = new User({
-                nickname: req.body.nickname,
-                email: req.body.email,
-                password: hash,
-                role: req.body.role,
-                token: uid2(32),
-                likedEvents: [],
-                badges: req.body.badges,
-			})
-			newUser.save().
-            then(dbData => res.json({result:true, dbData}))
-            .then((savedUser)=> {
-                return User.findOne(savedUser.token)
-                .populate('events')
-            })
-            .then((populatedUser) => 
-            res.json({result:true, populatedUser}))
-            .catch((err) => console.log(err));
-		}
-	})
-})
+  //création user
+  User.findOne({ email: req.body.email }).then((dbData) => {
+    if (dbData) {
+      res.json({ result: false, error: `Ce mail est déjà existant` });
+    } else {
+      const hash = bcrypt.hashSync(req.body.password, 10);
+      const newUser = new User({
+        nickname: req.body.nickname,
+        email: req.body.email,
+        password: hash,
+        role: req.body.role,
+        token: uid2(32),
+        likedEvents: [],
+        badges: req.body.badges,
+      });
+      newUser
+        .save()
+        .then((dbData) =>
+          res.json({
+            result: true,
+            token: dbData.token,
+            nickname: dbData.nickname,
+            id: dbData._id,
+            role: dbData.role,
+            badges: dbData.badges,
+          })
+        )
+        //res.json({result:true, token: dbData.token, nickname: dbData.nickname, id: dbData._id})
+        // .then((savedUser)=> {
+        //     return User.findOne(savedUser.token)
+        //     .populate('events')
+        // })
+        // .then((populatedUser) =>
+        // res.json({result:true, populatedUser}))
+        .catch((err) => console.log(err));
+    }
+  });
+});
 
 router.post("/login", (req, res) => {
   //connexion user par email et mdp
-User.findOne({ email: req.body.email }).then((dbData) => {
+  User.findOne({ email: req.body.email })
+  .populate('likedEvents') 
+  .then((dbData) => {
+console.log("********",dbData)
+//dbData.likedEvents ==> [idevent, idevent...]
     if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
-    res.json({ result: true, dbData });
+      
+      res.json({
+          result: true,
+          token: dbData.token,
+          nickname: dbData.nickname,
+          id: dbData._id,
+          role: dbData.role,
+          badges: dbData.badges,
+        });
     } else {
-    res.json({ result: false, error: "Mauvais email et/ou mot de passe" });
+      res.json({ result: false, error: "Mauvais email et/ou mot de passe" });
     }
-    });
+  });
 });
 
 router.delete("/deleteUser/:token", (req, res) => {
