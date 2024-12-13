@@ -119,16 +119,17 @@ router.post("/like/:userToken/:eventId", (req, res) => {
   const { userToken, eventId } = req.params;
 
   User.findOne({ token: userToken })
+
     .then((user) => {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-       Event.findById(eventId).then((event) => {
+      Event.findById(eventId).then((event) => {
         if (!event) {
           return res.status(404).json({ message: "Event not found" });
         }
-      // console.log(user.likedEvents)
+        // console.log(user.likedEvents)
         if (user.likedEvents.includes(eventId)) {
           return res
             .status(400)
@@ -148,7 +149,7 @@ router.post("/like/:userToken/:eventId", (req, res) => {
       });
     })
     .catch((error) => {
-      console.error(error)
+      console.error(error);
       res.status(500).json({ message: "An error occurred", error });
     });
 });
