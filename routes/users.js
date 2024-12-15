@@ -36,6 +36,8 @@ router.post("/signup", (req, res) => {
             result: true,
             token: dbData.token,
             nickname: dbData.nickname,
+            likedEvents: dbData.likedEvents,
+
             id: dbData._id,
             role: dbData.role,
             badges: dbData.badges,
@@ -58,14 +60,14 @@ router.post("/login", (req, res) => {
   User.findOne({ email: req.body.email })
   .populate('likedEvents') 
   .then((dbData) => {
-console.log("********",dbData)
 //dbData.likedEvents ==> [idevent, idevent...]
     if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
-      
       res.json({
           result: true,
           token: dbData.token,
           nickname: dbData.nickname,
+          likedEvents: dbData.likedEvents,
+
           id: dbData._id,
           role: dbData.role,
           badges: dbData.badges,
