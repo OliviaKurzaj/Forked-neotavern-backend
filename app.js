@@ -10,7 +10,7 @@ var eventsRouter = require("./routes/events");
 var placesRouter = require("./routes/places");
 var uploadRouter = require('./routes/upload')
 
-var app = express();
+var app = express(); 
 
 const fileUpload = require('express-fileupload');
 app.use(fileUpload());
