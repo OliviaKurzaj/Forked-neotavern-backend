@@ -115,29 +115,27 @@ router.get("/createdEvents/:userToken", (req, res) => {
 });
 
 // Route pour liker ou disliker un événement par le token de l'utilisateur
-router.get('/like/:token/:eventId', (req, res) => {
+router.get("/like/:token/:eventId", (req, res) => {
   const { token, eventId } = req.params;
 
-  User.findOne({ token }).then(
-    (user) => {
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (user.likedEvents.includes(eventId)) {
-        user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
-        res.json({ message: "Event disliked successfully" });
-      } else {
-        user.likedEvents.push(eventId);
-        res.json({ message: "Event liked successfully" });
-      }
-
-      user.save().then(() => {
-        res.json({ message: "User likes updates" });
-      });
+  User.findOne({ token }).then((user) => {
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  )
 
+    if (user.likedEvents.includes(eventId)) {
+      user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
+      res.json({ message: "Event disliked successfully" });
+    } else {
+      user.likedEvents.push(eventId);
+      res.json({ message: "Event liked successfully" });
+    }
+
+    user.save().then(() => {
+      res.json({ message: "User likes updates" });
+    });
+  });
+});
 
 // Route pour récupérer les likes d'un utilisateur
 router.get("/liked-events/:userId", (req, res) => {
