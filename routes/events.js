@@ -114,51 +114,37 @@ router.get("/createdEvents/:userToken", (req, res) => {
     });
 });
 
-// Route pour liker un événement
-router.post("/like/:userToken/:eventId", (req, res) => {
-  const { userToken, eventId } = req.params;
+// Route pour liker ou disliker un événement
+router.post("/like/:userId/:eventId", (req, res) => {
+  const { userId, eventId } = req.params;
 
-  User.findOne({ token: userToken })
-
-    .then((user) => {
+  User.findById(userId).then(
+    (user) => {
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: "User not found" });
+        throw new Error("User not found");
       }
 
-      Event.findById(eventId).then((event) => {
-        if (!event) {
-          return res.status(404).json({ message: "Event not found" });
-        }
-        // console.log(user.likedEvents)
-        if (user.likedEvents.includes(eventId)) {
-          user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
-          event.likes -= 1;
-          return Promise.all([user.save(), event.save()]).then(() => {
-            res.status(200).json({
-              message: "Event disliked successfully",
-              event,
-              "disliké par": user,
-            });
-          });
-        }
+      if (user.likedEvents.includes(eventId)) {
+        user.likedEvents = user.likedEvents.filter(
+          (likedEvent) => likedEvent.toString() !== eventId
+        );
+        res.json({result: 'liked', message: "Event disliked" });
+      } else {
         user.likedEvents.push(eventId);
-        return user.save().then(() => {
-          event.likes += 1;
-          return event.save().then(() => {
-            res.status(200).json({
-              message: "Event liked successfully",
-              event,
-              "liké par": user,
-            });
-          });
-        });
-      });
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(500).json({ message: "An error occurred", error });
-    });
-});
+        res.json({ result: 'disliked', message: "Event liked" });
+      }
+
+      return user.save();
+    },
+    (error) => {
+      if (!res.headersSent) {
+        res
+          .status(500)
+          .json({ message: "An error occurred", error: error.message });
+      }
+    }
+  )
 
 // Route pour récupérer les likes d'un utilisateur
 router.get("/liked-events/:userId", (req, res) => {
