@@ -118,23 +118,45 @@ router.get("/createdEvents/:userToken", (req, res) => {
 router.get("/like/:token/:eventId", (req, res) => {
   const { token, eventId } = req.params;
 
-  User.findOne({ token }).then((user) => {
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+  User.findOne({ token })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
-    if (user.likedEvents.includes(eventId)) {
-      user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
-      res.json({ message: "Event disliked successfully" });
-    } else {
-      user.likedEvents.push(eventId);
-      res.json({ message: "Event liked successfully" });
-    }
+      Event.findById(eventId).then((event) => {
+        if (!event) {
+          return res.status(404).json({ message: "Event not found" });
+        }
 
-    user.save().then(() => {
-      res.json({ message: "User likes updates" });
+        if (user.likedEvents.includes(eventId)) {
+          // Si l'événement est déjà liké, le disliker
+          user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
+          event.likes -= 1;
+          return Promise.all([user.save(), event.save()]).then(() => {
+            res.status(200).json({
+              message: "Event disliked successfully",
+              event,
+              user,
+            });
+          });
+        } else {
+          // Si l'événement n'est pas encore liké, le liker
+          user.likedEvents.push(eventId);
+          event.likes += 1;
+          return Promise.all([user.save(), event.save()]).then(() => {
+            res.status(200).json({
+              message: "Event liked successfully",
+              event,
+              user,
+            });
+          });
+        }
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
     });
-  });
 });
 
 // Route pour récupérer les likes d'un utilisateur
