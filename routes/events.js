@@ -118,8 +118,8 @@ router.get("/createdEvents/:userToken", (req, res) => {
 router.post("/like/:userId/:eventId", (req, res) => {
   const { userId, eventId } = req.params;
 
-  User.findById(userId).then(
-    (user) => {
+  User.findById(userId)
+    .then((user) => {
       if (!user) {
         res.status(404).json({ message: "User not found" });
         throw new Error("User not found");
@@ -129,22 +129,22 @@ router.post("/like/:userId/:eventId", (req, res) => {
         user.likedEvents = user.likedEvents.filter(
           (likedEvent) => likedEvent.toString() !== eventId
         );
-        res.json({result: 'liked', message: "Event disliked" });
+        res.json({ result: "liked", message: "Event disliked" });
       } else {
         user.likedEvents.push(eventId);
-        res.json({ result: 'disliked', message: "Event liked" });
+        res.json({ result: "disliked", message: "Event liked" });
       }
 
       return user.save();
-    },
-    (error) => {
+    })
+    .catch((error) => {
       if (!res.headersSent) {
         res
           .status(500)
           .json({ message: "An error occurred", error: error.message });
       }
-    }
-  )
+    });
+});
 
 // Route pour récupérer les likes d'un utilisateur
 router.get("/liked-events/:userId", (req, res) => {
