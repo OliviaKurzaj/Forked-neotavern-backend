@@ -114,37 +114,30 @@ router.get("/createdEvents/:userToken", (req, res) => {
     });
 });
 
-// Route pour liker ou disliker un événement
-router.post("/like/:userId/:eventId", (req, res) => {
-  const { userId, eventId } = req.params;
+// Route pour liker ou disliker un événement par le token de l'utilisateur
+router.get('/like/:token/:eventId', (req, res) => {
+  const { token, eventId } = req.params;
 
-  User.findById(userId)
-    .then((user) => {
+  User.findOne({ token }).then(
+    (user) => {
       if (!user) {
-        res.status(404).json({ message: "User not found" });
-        throw new Error("User not found");
+        return res.status(404).json({ message: "User not found" });
       }
 
       if (user.likedEvents.includes(eventId)) {
-        user.likedEvents = user.likedEvents.filter(
-          (likedEvent) => likedEvent.toString() !== eventId
-        );
-        res.json({ result: "liked", message: "Event disliked" });
+        user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
+        res.json({ message: "Event disliked successfully" });
       } else {
         user.likedEvents.push(eventId);
-        res.json({ result: "disliked", message: "Event liked" });
+        res.json({ message: "Event liked successfully" });
       }
 
-      return user.save();
-    })
-    .catch((error) => {
-      if (!res.headersSent) {
-        res
-          .status(500)
-          .json({ message: "An error occurred", error: error.message });
-      }
-    });
-});
+      user.save().then(() => {
+        res.json({ message: "User likes updates" });
+      });
+    }
+  )
+
 
 // Route pour récupérer les likes d'un utilisateur
 router.get("/liked-events/:userId", (req, res) => {
