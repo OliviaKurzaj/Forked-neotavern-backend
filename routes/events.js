@@ -131,9 +131,15 @@ router.post("/like/:userToken/:eventId", (req, res) => {
         }
         // console.log(user.likedEvents)
         if (user.likedEvents.includes(eventId)) {
-          return res
-            .status(400)
-            .json({ message: "Event already liked", liked: true });
+          user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
+          event.likes -= 1;
+          return Promise.all([user.save(), event.save()]).then(() => {
+            res.status(200).json({
+              message: "Event disliked successfully",
+              event,
+              "disliké par": user,
+            });
+          });
         }
         user.likedEvents.push(eventId);
         return user.save().then(() => {
