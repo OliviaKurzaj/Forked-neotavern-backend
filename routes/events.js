@@ -120,54 +120,22 @@ router.get("/createdEvents/:userToken", (req, res) => {
 router.put("/like/:userToken/:eventId", (req, res) => {
   const { userToken, eventId } = req.params;
 
-  // 1. Trouver l'utilisateur par son token
-  User.findOne({ token: userToken })
-    .populate("likedEvents")
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+  User.updateOne(
+    { token: userToken },
+    { $push: { likedEvents: eventId } }
+  ).then((user) => {
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    Event.update({ _id: eventId }, { $inc: { likes: 1 } }).then((event) => {
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
       }
 
-      // 2. Vérifier si l'utilisateur a déjà liké l'événement
-      const hasLiked = user.likedEvents.includes(eventId);
-
-      if (hasLiked) {
-        // Dislike : retirer l'ID de l'événement du tableau `likedEvents`
-        User.updateOne({ _id: user._id }, { $pull: { likedEvents: eventId } })
-          .then(() => {
-            // Retirer l'ID de l'utilisateur du tableau `likes` de l'événement
-            return Event.updateOne(
-              { _id: eventId },
-              { $pull: { likes: user._id } }
-            );
-          })
-          .then(() => {
-            res.json({ message: "Event disliked successfully" });
-          })
-          .catch((err) => {
-            res.status(500).json({ error: err.message });
-          });
-      } else {
-        // Like : ajouter l'ID de l'événement au tableau `likedEvents`
-        User.updateOne({ _id: user._id }, { $push: { likedEvents: eventId } })
-          .then(() => {
-            // Ajouter l'ID de l'utilisateur au tableau `likes` de l'événement
-            return Event.updateOne(
-              { _id: eventId },
-              { $push: { likes: user._id } }
-            );
-          })
-          .then(() => {
-            res.json({ message: "Event liked successfully" });
-          })
-          .catch((err) => {
-            res.status(500).json({ error: err.message });
-          });
-      }
-    })
-    .catch((err) => {
-      res.status(500).json({ error: err.message });
+      res.json({ message: "Event liked successfully" });
     });
+  });
 });
 
 // Route pour récupérer les likes d'un utilisateur
