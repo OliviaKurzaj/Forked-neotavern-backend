@@ -117,25 +117,40 @@ router.get("/createdEvents/:userToken", (req, res) => {
 });
 
 // Route pour liker et disliker un événement par le token de l'utilisateur
-router.put("/like/:userToken/:eventId", (req, res) => {
+router.put("/like/:userToken/:eventId", async (req, res) => {
   const { userToken, eventId } = req.params;
 
-  User.updateOne(
-    { token: userToken },
-    { $push: { likedEvents: eventId } }
-  ).then((user) => {
+  try {
+    const user = await User.findOne({ token: userToken });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    Event.update({ _id: eventId }, { $inc: { likes: 1 } }).then((event) => {
-      if (!event) {
-        return res.status(404).json({ message: "Event not found" });
-      }
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
 
+    if (user.likedEvents.includes(eventId)) {
+      // Dislike
+      await User.updateOne(
+        { token: userToken },
+        { $pull: { likedEvents: eventId } }
+      );
+      await Event.updateOne({ _id: eventId }, { $inc: { likes: -1 } });
+      res.json({ message: "Event disliked successfully" });
+    } else {
+      // Like
+      await User.updateOne(
+        { token: userToken },
+        { $push: { likedEvents: eventId } }
+      );
+      await Event.updateOne({ _id: eventId }, { $inc: { likes: 1 } });
       res.json({ message: "Event liked successfully" });
-    });
-  });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Route pour récupérer les likes d'un utilisateur
