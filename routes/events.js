@@ -115,7 +115,7 @@ router.get("/createdEvents/:userToken", (req, res) => {
 });
 
 // Route pour liker ou disliker un événement par le token de l'utilisateur
-router.get("/like/:token/:eventId", (req, res) => {
+router.post("/like/:token/:eventId", (req, res) => {
   const { token, eventId } = req.params;
 
   User.findOne({ token })
