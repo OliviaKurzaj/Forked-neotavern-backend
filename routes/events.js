@@ -133,12 +133,18 @@ router.put("/like/:userToken/:eventId", async (req, res) => {
 
     if (user.likedEvents.includes(eventId)) {
       // Dislike
-      await User.updateOne(
-        { token: userToken },
-        { $pull: { likedEvents: eventId } }
-      );
-      await Event.updateOne({ _id: eventId }, { $inc: { likes: -1 } });
-      res.json({ message: "Event disliked successfully" });
+      if (event.likes > 0) {
+        await User.updateOne(
+          { token: userToken },
+          { $pull: { likedEvents: eventId } }
+        );
+        await Event.updateOne({ _id: eventId }, { $inc: { likes: -1 } });
+        res.json({ message: "Event disliked successfully" });
+      } else {
+        res
+          .status(400)
+          .json({ message: "Cannot dislike an event with 0 likes" });
+      }
     } else {
       // Like
       await User.updateOne(
