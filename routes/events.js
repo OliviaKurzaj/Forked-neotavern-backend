@@ -122,6 +122,7 @@ router.put("/like/:userToken/:eventId", (req, res) => {
 
   // 1. Trouver l'utilisateur par son token
   User.findOne({ token: userToken })
+    .populate("likedEvents")
     .then((user) => {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
