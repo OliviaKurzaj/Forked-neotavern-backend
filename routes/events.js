@@ -137,7 +137,7 @@ router.post("/like/:token/:eventId", (req, res) => {
           if (event.like > 0) event.likes--;
           return Promise.all([user.save(), event.save()]).then(() => {
             res.status(200).json({
-              message: "Event disliked successfully",
+              message: "disliked",
               event,
               user,
             });
@@ -148,7 +148,7 @@ router.post("/like/:token/:eventId", (req, res) => {
           event.likes--;
           return Promise.all([user.save(), event.save()]).then(() => {
             res.status(200).json({
-              message: "Event liked successfully",
+              message: "liked",
               event,
               user,
             });
