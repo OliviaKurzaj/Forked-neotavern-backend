@@ -160,25 +160,28 @@ router.put("/like/:userToken/:eventId", async (req, res) => {
 });
 
 // Route pour récupérer les likes d'un utilisateur
-router.get("/liked-events/:userId", (req, res) => {
-  const { userId } = req.params;
+router.get("/likedEvents/:userToken", (req, res) => {
+  const { userToken } = req.params;
 
-  User.findById(userId)
-    .populate("likedEvents")
+  if (!userToken) {
+    return res.status(400).json({ message: "User token is required" });
+  }
+
+  User.findOne({ token: userToken })
     .then((user) => {
       if (!user) {
-        res.status(404).json({ message: "User not found" });
-        throw new Error("User not found");
+        return res.status(404).json({ message: "User not found" });
       }
 
-      res.status(200).json({ likedEvents: user.likedEvents });
+      Event.find({ _id: { $in: user.likedEvents } })
+        .populate("user")
+        .populate("place")
+        .then((events) => {
+          res.json({ likedEvents: events });
+        });
     })
-    .catch((error) => {
-      if (!res.headersSent) {
-        res
-          .status(500)
-          .json({ message: "An error occurred", error: error.message });
-      }
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
     });
 });
 
