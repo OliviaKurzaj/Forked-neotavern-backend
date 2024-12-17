@@ -145,7 +145,7 @@ router.post("/like/:token/:eventId", (req, res) => {
         } else {
           // Si l'événement n'est pas encore liké, le liker
           user.likedEvents.push(eventId);
-          event.likes--;
+          event.likes++;
           return Promise.all([user.save(), event.save()]).then(() => {
             res.status(200).json({
               message: "liked",
