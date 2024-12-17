@@ -127,39 +127,42 @@ router.put("/like/:userToken/:eventId", (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // 2. Trouver l'événement par son ID
-      Event.findById(eventId)
-        .then((event) => {
-          if (!event) {
-            return res.status(404).json({ message: "Event not found" });
-          }
+      // 2. Vérifier si l'utilisateur a déjà liké l'événement
+      const hasLiked = user.likedEvents.includes(eventId);
 
-          // 3. Vérifier si l'utilisateur a déjà liké l'événement
-          const hasLiked = event.likes.includes(user._id);
-
-          if (hasLiked) {
-            // Dislike : retirer l'ID de l'utilisateur du tableau `likes`
-            Event.updateOne({ _id: eventId }, { $pull: { likes: user._id } })
-              .then(() => {
-                res.json({ message: "Event disliked successfully" });
-              })
-              .catch((err) => {
-                res.status(500).json({ error: err.message });
-              });
-          } else {
-            // Like : ajouter l'ID de l'utilisateur au tableau `likes`
-            Event.updateOne({ _id: eventId }, { $push: { likes: user._id } })
-              .then(() => {
-                res.json({ message: "Event liked successfully" });
-              })
-              .catch((err) => {
-                res.status(500).json({ error: err.message });
-              });
-          }
-        })
-        .catch((err) => {
-          res.status(500).json({ error: err.message });
-        });
+      if (hasLiked) {
+        // Dislike : retirer l'ID de l'événement du tableau `likedEvents`
+        User.updateOne({ _id: user._id }, { $pull: { likedEvents: eventId } })
+          .then(() => {
+            // Retirer l'ID de l'utilisateur du tableau `likes` de l'événement
+            return Event.updateOne(
+              { _id: eventId },
+              { $pull: { likes: user._id } }
+            );
+          })
+          .then(() => {
+            res.json({ message: "Event disliked successfully" });
+          })
+          .catch((err) => {
+            res.status(500).json({ error: err.message });
+          });
+      } else {
+        // Like : ajouter l'ID de l'événement au tableau `likedEvents`
+        User.updateOne({ _id: user._id }, { $push: { likedEvents: eventId } })
+          .then(() => {
+            // Ajouter l'ID de l'utilisateur au tableau `likes` de l'événement
+            return Event.updateOne(
+              { _id: eventId },
+              { $push: { likes: user._id } }
+            );
+          })
+          .then(() => {
+            res.json({ message: "Event liked successfully" });
+          })
+          .catch((err) => {
+            res.status(500).json({ error: err.message });
+          });
+      }
     })
     .catch((err) => {
       res.status(500).json({ error: err.message });
