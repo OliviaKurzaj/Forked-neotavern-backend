@@ -78,23 +78,25 @@ router.delete("/deleteEvent/:userToken", (req, res) => {
     return res.status(400).json({ message: "Event ID is required" });
   }
 
-  Event.findById(eventId).then((event) => {
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
+  Event.findById(eventId)
+    .populate("user")
+    .then((event) => {
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
 
-    if (event.user.token !== userToken) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
+      if (event.user.token !== userToken) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
 
-    Event.findByIdAndDelete(eventId)
-      .then(() => {
-        res.json({ message: "Event deleted successfully" });
-      })
-      .catch((err) => {
-        res.status(500).json({ error: err.message });
-      });
-  });
+      Event.findByIdAndDelete(eventId)
+        .then(() => {
+          res.json({ message: "Event deleted successfully" });
+        })
+        .catch((err) => {
+          res.status(500).json({ error: err.message });
+        });
+    });
 });
 
 // Route pour récupérer les événements créés par un utilisateur
@@ -132,7 +134,7 @@ router.post("/like/:token/:eventId", (req, res) => {
         if (user.likedEvents.includes(eventId)) {
           // Si l'événement est déjà liké, le disliker
           user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
-          if (event.like > 0) event.likes -= 1;
+          if (event.like > 0) event.likes--;
           return Promise.all([user.save(), event.save()]).then(() => {
             res.status(200).json({
               message: "Event disliked successfully",
@@ -143,7 +145,7 @@ router.post("/like/:token/:eventId", (req, res) => {
         } else {
           // Si l'événement n'est pas encore liké, le liker
           user.likedEvents.push(eventId);
-          event.likes += 1;
+          event.likes--;
           return Promise.all([user.save(), event.save()]).then(() => {
             res.status(200).json({
               message: "Event liked successfully",
