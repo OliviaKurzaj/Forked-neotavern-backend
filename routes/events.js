@@ -134,7 +134,7 @@ router.post("/like/:token/:eventId", (req, res) => {
         if (user.likedEvents.includes(eventId)) {
           // Si l'événement est déjà liké, le disliker
           user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
-          if (event.like > 0) event.likes--;
+          if (event.likes > 0) event.likes--; // Correction ici
           return Promise.all([user.save(), event.save()]).then(() => {
             res.status(200).json({
               message: "disliked",
