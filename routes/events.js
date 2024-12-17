@@ -116,49 +116,29 @@ router.get("/createdEvents/:userToken", (req, res) => {
     });
 });
 
-// Route pour liker ou disliker un événement par le token de l'utilisateur
+// Route pour liker un événement par le token de l'utilisateur
 router.post("/like/:token/:eventId", (req, res) => {
   const { token, eventId } = req.params;
 
   User.findOne({ token })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: "User not found" });
+        throw new Error("User not found");
       }
-
-      Event.findById(eventId).then((event) => {
-        if (!event) {
-          return res.status(404).json({ message: "Event not found" });
-        }
-
-        if (user.likedEvents.includes(eventId)) {
-          // Si l'événement est déjà liké, le disliker
-          user.likedEvents = user.likedEvents.filter((id) => id !== eventId);
-          if (event.likes > 0) event.likes--; // Correction ici
-          return Promise.all([user.save(), event.save()]).then(() => {
-            res.status(200).json({
-              message: "disliked",
-              event,
-              user,
-            });
-          });
-        } else {
-          // Si l'événement n'est pas encore liké, le liker
-          user.likedEvents.push(eventId);
-          event.likes++;
-          return Promise.all([user.save(), event.save()]).then(() => {
-            res.status(200).json({
-              message: "liked",
-              event,
-              user,
-            });
-          });
-        }
-      });
     })
-    .catch((err) => {
-      res.status(500).json({ error: err.message });
+    .catch((error) => {
+      if (!res.headersSent) {
+        res
+          .status(500)
+          .json({ message: "An error occurred", error: error.message });
+      }
     });
+});
+
+// Route pour disliker un événement par le token de l'utilisateur
+router.post("/dislike/:token/:eventId", (req, res) => {
+  const { token, eventId } = req.params;
 });
 
 // Route pour récupérer les likes d'un utilisateur

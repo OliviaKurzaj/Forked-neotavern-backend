@@ -58,11 +58,11 @@ router.post("/signup", (req, res) => {
 router.post("/login", (req, res) => {
   //connexion user par email et mdp
   User.findOne({ email: req.body.email })
-  .populate('likedEvents') 
-  .then((dbData) => {
-//dbData.likedEvents ==> [idevent, idevent...]
-    if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
-      res.json({
+    .populate("likedEvents")
+    .then((dbData) => {
+      //dbData.likedEvents ==> [idevent, idevent...]
+      if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
+        res.json({
           result: true,
           token: dbData.token,
           nickname: dbData.nickname,
@@ -72,16 +72,17 @@ router.post("/login", (req, res) => {
           role: dbData.role,
           badges: dbData.badges,
         });
-    } else {
-      res.json({ result: false, error: "Mauvais email et/ou mot de passe" });
-    }
-  });
+      } else {
+        res.json({ result: false, error: "Mauvais email et/ou mot de passe" });
+      }
+    });
 });
 
 router.delete("/deleteUser/:token", (req, res) => {
   //suppression user via token
-  User.deleteOne({ token: req.params.token });
-  res.json({ result: true, message: "Compte surpprimé !" });
+  User.deleteOne({ token: req.params.token }).then(
+    res.json({ result: true, message: "Compte supprimé" })
+  );
 });
 
 router.put("/updateUser/:token", (req, res) => {
