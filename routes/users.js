@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
-const User = require("../models/users");
-const Event = require("../models/events");
 
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
+
 const { checkBody } = require("../modules/checkBody");
+const User = require("../models/users");
 
 router.post("/signup", (req, res) => {
   //vérification du champs de saisie
@@ -36,6 +36,7 @@ router.post("/signup", (req, res) => {
             result: true,
             token: dbData.token,
             nickname: dbData.nickname,
+            email: dbData.mail,
             likedEvents: dbData.likedEvents,
 
             id: dbData._id,
@@ -43,13 +44,7 @@ router.post("/signup", (req, res) => {
             badges: dbData.badges,
           })
         )
-        //res.json({result:true, token: dbData.token, nickname: dbData.nickname, id: dbData._id})
-        // .then((savedUser)=> {
-        //     return User.findOne(savedUser.token)
-        //     .populate('events')
-        // })
-        // .then((populatedUser) =>
-        // res.json({result:true, populatedUser}))
+
         .catch((err) => console.log(err));
     }
   });
@@ -60,12 +55,12 @@ router.post("/login", (req, res) => {
   User.findOne({ email: req.body.email })
   .populate('likedEvents') 
   .then((dbData) => {
-//dbData.likedEvents ==> [idevent, idevent...]
     if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
       res.json({
           result: true,
           token: dbData.token,
           nickname: dbData.nickname,
+          email: dbData.mail,
           likedEvents: dbData.likedEvents,
 
           id: dbData._id,
@@ -82,30 +77,6 @@ router.delete("/deleteUser/:token", (req, res) => {
   //suppression user via token
   User.deleteOne({ token: req.params.token });
   res.json({ result: true, message: "Compte surpprimé !" });
-});
-
-router.put("/updateUser/:token", (req, res) => {
-  //maj user via token
-  User.find({ token: req.params.token }).then((dbData) => {
-    if (!dbData) {
-      const hash = bcrypt.hashSync(req.body.password, 10);
-      User.updateOne(
-        { token: req.params.token },
-        { nickname: req.body.nickname } || { password: hash }
-      ).then(() => {
-        if (dbData)
-          User.findOne({ token: req.params.token }).then((updateData) => {
-            res.json({
-              result: true,
-              message: "Modifications enregistrées !",
-              updateData,
-            });
-          });
-      });
-    } else {
-      res.json({ result: false });
-    }
-  });
 });
 
 module.exports = router;
