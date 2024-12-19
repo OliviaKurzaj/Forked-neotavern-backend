@@ -36,7 +36,7 @@ router.post("/signup", (req, res) => {
             result: true,
             token: dbData.token,
             nickname: dbData.nickname,
-            email: dbData.mail,
+            email: dbData.email,
             likedEvents: dbData.likedEvents,
 
             id: dbData._id,
@@ -60,7 +60,7 @@ router.post("/login", (req, res) => {
           result: true,
           token: dbData.token,
           nickname: dbData.nickname,
-          email: dbData.mail,
+          email: dbData.email,
           likedEvents: dbData.likedEvents,
 
           id: dbData._id,
