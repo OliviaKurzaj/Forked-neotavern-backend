@@ -75,8 +75,10 @@ router.post("/login", (req, res) => {
 
 router.delete("/deleteUser/:token", (req, res) => {
   //suppression user via token
-  User.deleteOne({ token: req.params.token });
-  res.json({ result: true, message: "Compte surpprimé !" });
+  User.deleteOne({ token: req.params.token })
+  .then( () => { 
+    res.json({ result: true, message: "Compte surpprimé !" })
+  });
 });
 
 module.exports = router;
