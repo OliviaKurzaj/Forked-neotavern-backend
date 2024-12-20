@@ -78,7 +78,7 @@ router.delete("/deleteUser/:token", (req, res) => {
   User.deleteOne({ token: req.params.token })
   .then( () => { 
     res.json({ result: true, message: "Compte surpprimé !" })
-  });
+  }); 
 });
 
 module.exports = router;
