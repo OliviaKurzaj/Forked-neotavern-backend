@@ -39,7 +39,6 @@ router.post("/signup", (req, res) => {
             email: dbData.email,
             likedEvents: dbData.likedEvents,
 
-            id: dbData._id,
             role: dbData.role,
             badges: dbData.badges,
           })
@@ -53,7 +52,6 @@ router.post("/signup", (req, res) => {
 router.post("/login", (req, res) => {
   //connexion user par email et mdp
   User.findOne({ email: req.body.email })
-  .populate('likedEvents') 
   .then((dbData) => {
     if (dbData && bcrypt.compareSync(req.body.password, dbData.password)) {
       res.json({
@@ -63,7 +61,6 @@ router.post("/login", (req, res) => {
           email: dbData.email,
           likedEvents: dbData.likedEvents,
 
-          id: dbData._id,
           role: dbData.role,
           badges: dbData.badges,
         });
