@@ -27,7 +27,7 @@ router.post("/createEvent/", (req, res) => {
         .save()
         .then((savedEvent) => {
           return Event.findById(savedEvent._id)
-            .populate("user")
+            .populate("user", "token")
             .populate("place");
         })
         .then((populatedEvent) => res.json(populatedEvent))
@@ -39,7 +39,7 @@ router.post("/createEvent/", (req, res) => {
 router.get("/", (req, res) => {
   // Récupérer tous les événements
   Event.find()
-    .populate("user")
+    .populate("user", "token")
     .populate("place")
     .then((events) => res.json(events));
 });
